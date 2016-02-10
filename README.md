@@ -1,7 +1,7 @@
 # qrpc
 A small distributed queue messaging service backed by grpc.
 
-I've createdthe project mostly as an exercise because I wanted to play with [grcp](http://www.grpc.io/).
+I've created the project mainly as an exercise because I wanted to play with [grcp](http://www.grpc.io/).
 This is not super secure queue service, rather a grpc example implemented in go.
 
 ### Note
