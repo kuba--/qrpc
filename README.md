@@ -1,7 +1,7 @@
 # qrpc
 A small distributed queue messaging service backed by grpc.
 
-I've created  *the learning project* mostly because I wanted to play with [grcp](http://www.grpc.io/).
+I've createdthe project mostly as an exercise because I wanted to play with [grcp](http://www.grpc.io/).
 This is not super secure queue service, rather a grpc example implemented in go.
 
 ### Note
@@ -10,6 +10,9 @@ QRPC stores data using Peter's awesome [diskv](https://github.com/peterbourgon/d
 
 ### Install & Run
 ```sh
+
+$ export GO15VENDOREXPERIMENT=1
+
 $ go get github.com/kuba--/qrpc/qrpc
 $ qrpc --help
 flags:
