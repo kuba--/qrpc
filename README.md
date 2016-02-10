@@ -8,3 +8,22 @@ This is not super secure queue service, rather a grpc example implemented in go.
 For the purpose of the project I also "stole" some ideas :)
 QRPC stores data using Peter's awesome [diskv](https://github.com/peterbourgon/diskv) library. Also multi-master architecture is something what I really like in [disque](https://github.com/antirez/disque), so I've tried to implement similar mechanism.
 
+### Install & Run
+```sh
+$ go get github.com/kuba--/qrpc/qrpc
+$ qrpc --help
+flags:
+  -cache uint
+    	max cache size (bytes) before an item is evicted. (default 1048576)
+  -data string
+    	directory in which queue data is stored (default ".qrpc")
+  -port string
+    	port to listen on (default "2016")
+    	
+# start standalone server :9091
+$ qrpc -data /tmp/qrpc-9091 -port 9091
+
+# ...join the cluster 
+$ qrpc -data /tmp/qrpc-9092 -port 9092 127.0.0.1:9091
+$ qrpc -data /tmp/qrpc-9093 -port 9093 127.0.0.1:9092
+```
