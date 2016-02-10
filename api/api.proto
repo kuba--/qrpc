@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package api;
+
+service QRPC {
+	rpc Send (SendRequest) returns (SendResponse) {}
+	rpc Receive (ReceiveRequest) returns (ReceiveResponse) {}
+}
+
+message SendRequest {
+	string topic = 1;
+	bytes  msg   = 2;
+}
+message SendResponse {
+	string key = 1;
+}
+
+message ReceiveRequest {
+	string topic = 1;
+}
+message ReceiveResponse {
+	string key  = 1;
+	bytes  msg  = 2;
+}
+

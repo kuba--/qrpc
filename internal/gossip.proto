@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package internal;
+
+message Peer {
+	string key  = 1;
+	string addr = 2;
+}
+
+service Gossip {
+	rpc Join(JoinRequest) returns (JoinResponse) {}
+	rpc Unjoin(UnjoinRequest) returns (UnjoinResponse) {}
+	rpc Ping(PingRequest) returns (PingResponse) {}
+	rpc Write(WriteRequest) returns (WriteResponse) {}
+	rpc Erase(EraseRequest) returns (EraseResponse) {}
+}
+
+message JoinRequest {
+	string key = 1;
+	string laddr = 2;
+}
+message JoinResponse {
+	string key = 1;
+	repeated Peer peers = 2;
+}
+
+message UnjoinRequest {
+	string key = 1;
+}
+message UnjoinResponse {
+}
+
+message PingRequest {
+	string key = 1;
+	string laddr = 2;
+}
+message PingResponse {
+}
+
+message WriteRequest {
+	string key = 1;
+	bytes  msg = 2;
+}
+message WriteResponse {
+	string key = 1;
+}
+
+message EraseRequest {
+	string key = 1;
+}
+message EraseResponse {
+	string key = 1;
+}
+
