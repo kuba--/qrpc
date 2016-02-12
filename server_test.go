@@ -16,14 +16,22 @@ import (
 
 const (
 	topic = "qrpc-test"
-	data  = "/tmp/qrpc-test"
-	cache = 1024
-	port  = "9090"
+)
+
+var (
+	config = &Config{
+		DataBasePath: "/tmp/qrpc-test",
+		MaxCacheSize: 1024,
+		Port:         9090,
+		ClusterRequestTimeout: time.Second,
+		ClusterWatchInterval:  time.Second,
+		ClusterPeers:          nil,
+	}
 )
 
 func TestServer(t *testing.T) {
-	s := NewServer(data, cache)
-	errchan := s.Start(port)
+	s := NewServer(config)
+	errchan := s.Start()
 	defer s.Stop()
 
 	select {
@@ -43,9 +51,9 @@ func testServerSend(t *testing.T) {
 		go func(cnt int) {
 			defer wg.Done()
 
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), config.ClusterRequestTimeout)
 			msg := strconv.Itoa(cnt)
-			_, err := api.Request(ctx, ":"+port, &api.SendRequest{topic, []byte(msg)})
+			_, err := api.Request(ctx, ":"+strconv.Itoa(config.Port), &api.SendRequest{topic, []byte(msg)})
 			if err != nil {
 				cancel()
 				t.Error(err)
@@ -64,8 +72,8 @@ func testServerReceive(t *testing.T) {
 		go func() {
 			defer wg.Done()
 
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-			if r, err := api.Request(ctx, ":"+port, &api.ReceiveRequest{topic}); err != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), config.ClusterRequestTimeout)
+			if r, err := api.Request(ctx, ":"+strconv.Itoa(config.Port), &api.ReceiveRequest{topic}); err != nil {
 				if grpc.Code(err) == codes.NotFound {
 					return
 				}

@@ -6,19 +6,23 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"time"
 
 	"github.com/kuba--/qrpc"
 )
 
 var (
-	port  = flag.String("port", "2016", "port to listen on")
-	data  = flag.String("data", ".qrpc", "directory in which queue data is stored")
-	cache = flag.Uint64("cache", 1024*1024, "max cache size (bytes) before an item is evicted.")
+	cfg qrpc.Config
 )
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
+	flag.IntVar(&cfg.Port, "port", 9033, "port to listen on")
+	flag.StringVar(&cfg.DataBasePath, "data", "/tmp/qrpc", "directory in which queue data is stored")
+	flag.Uint64Var(&cfg.MaxCacheSize, "cache", 1024*1024, "max. cache size (bytes) before an item is evicted.")
+	flag.DurationVar(&cfg.ClusterRequestTimeout, "timeout", 3*time.Second, "cluster request (gossip) timeout.")
+	flag.DurationVar(&cfg.ClusterWatchInterval, "interval", time.Second, "cluster watch timer interval.")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "usage: %s [flags] [cluster peer(s) ...]\n", os.Args[0])
 		fmt.Fprintln(os.Stderr, "flags:")
@@ -26,10 +30,10 @@ func main() {
 		os.Exit(2)
 	}
 	flag.Parse()
-	peers := flag.Args()
+	cfg.ClusterPeers = flag.Args()
 
-	s := qrpc.NewServer(*data, *cache)
-	errchan := s.Start(*port, peers...)
+	s := qrpc.NewServer(&cfg)
+	errchan := s.Start()
 
 	// Handle SIGINT and SIGTERM.
 	sigchan := make(chan os.Signal, 1)

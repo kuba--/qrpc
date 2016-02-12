@@ -16,9 +16,9 @@ import (
 
 func TestClusterJoin(t *testing.T) {
 	s := newCluster(3)
-	errchan0 := s[0].Start("9000")
-	errchan1 := s[1].Start("9001", ":9000")
-	errchan2 := s[2].Start("9002", ":9001")
+	errchan0 := s[0].Start()
+	errchan1 := s[1].Start()
+	errchan2 := s[2].Start()
 	defer stopCluster(s)
 
 	select {
@@ -55,9 +55,9 @@ func TestClusterJoin(t *testing.T) {
 
 func TestClusterStop(t *testing.T) {
 	s := newCluster(3)
-	errchan0 := s[0].Start("8000")
-	errchan1 := s[1].Start("8001", ":8000")
-	errchan2 := s[2].Start("8002", ":8001")
+	errchan0 := s[0].Start()
+	errchan1 := s[1].Start()
+	errchan2 := s[2].Start()
 	defer stopCluster([]*Server{s[2]})
 
 	select {
@@ -93,9 +93,9 @@ func TestClusterSendReceive(t *testing.T) {
 	lookup := make(map[string]string)
 
 	s := newCluster(3)
-	errchan0 := s[0].Start("7000")
-	errchan1 := s[1].Start("7001", ":7000")
-	errchan2 := s[2].Start("7002", ":7000")
+	errchan0 := s[0].Start()
+	errchan1 := s[1].Start()
+	errchan2 := s[2].Start()
 	defer stopCluster(s)
 
 	select {
@@ -141,7 +141,19 @@ func TestClusterSendReceive(t *testing.T) {
 
 func newCluster(n int) (servers []*Server) {
 	for i := 0; i < n; i++ {
-		servers = append(servers, NewServer("/tmp/qrpc-"+strconv.Itoa(i), 1024))
+		cfg := &Config{
+			DataBasePath: "/tmp/qrpc-" + strconv.Itoa(i),
+			MaxCacheSize: 1024,
+			Port:         9090 + i,
+			ClusterRequestTimeout: 3 * time.Second,
+			ClusterWatchInterval:  time.Second,
+			ClusterPeers:          nil,
+		}
+		if i > 0 {
+			cfg.ClusterPeers = append(cfg.ClusterPeers, "127.0.0.1:"+strconv.Itoa(9090+i-1))
+		}
+
+		servers = append(servers, NewServer(cfg))
 	}
 	return
 }
@@ -150,4 +162,5 @@ func stopCluster(servers []*Server) {
 	for _, s := range servers {
 		s.Stop()
 	}
+	time.Sleep(1 * time.Second)
 }
