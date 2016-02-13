@@ -15,18 +15,23 @@ $ export GO15VENDOREXPERIMENT=1
 
 $ go get github.com/kuba--/qrpc/qrpc
 $ qrpc --help
+usage: ./qrpc [flags] [cluster peer(s) ...]
 flags:
-  -cache uint
-    	max cache size (bytes) before an item is evicted. (default 1048576)
+  -port int
+  	port to listen on (default 9033)
   -data string
-    	directory in which queue data is stored (default ".qrpc")
-  -port string
-    	port to listen on (default "2016")
-    	
+  	directory in which queue data is stored (default "/tmp/qrpc")
+  -cache uint
+  	max. cache size (bytes) before an item is evicted. (default 1048576)
+  -interval duration
+  	cluster watch timer interval. (default 1s)
+  -timeout duration
+  	cluster request (gossip) timeout. (default 3s)
+
 # start standalone server :9091
 $ qrpc -data /tmp/qrpc-9091 -port 9091
 
-# ...join the cluster 
+# ...join the cluster
 $ qrpc -data /tmp/qrpc-9092 -port 9092 127.0.0.1:9091
 $ qrpc -data /tmp/qrpc-9093 -port 9093 127.0.0.1:9092
 ```

@@ -6,6 +6,7 @@ import (
 	"log"
 	"math"
 	"net"
+	"strconv"
 	"sync"
 	"time"
 
@@ -27,8 +28,18 @@ var (
 	grpcErrorf = grpc.Errorf
 )
 
+type Config struct {
+	Port                  int
+	MaxCacheSize          uint64
+	DataBasePath          string
+	ClusterRequestTimeout time.Duration
+	ClusterWatchInterval  time.Duration
+	ClusterPeers          []string
+}
+
 // Server structure represents QRPC node.
 type Server struct {
+	cfg           *Config
 	rpc           *grpc.Server
 	cluster       *cluster
 	cancelWatcher context.CancelFunc
@@ -38,36 +49,39 @@ type Server struct {
 }
 
 // NewServer creates a qrpc server which has not started to accept requests yet.
-func NewServer(dataDir string, cacheSize uint64) *Server {
+func NewServer(cfg *Config) *Server {
+	log.Printf("-> NewServer(%v)\n", cfg)
+
 	return &Server{
+		cfg: cfg,
 		rpc: grpc.NewServer(grpc.MaxConcurrentStreams(math.MaxUint32)),
 		cluster: &cluster{
 			key:     fmt.Sprintf("peer-%s", keySuffix()),
-			timeout: 3 * time.Second,
+			timeout: cfg.ClusterRequestTimeout,
 			peers:   make(map[string]*internal.Peer),
 		},
 		cancelWatcher: nil,
 
 		mtx: &sync.Mutex{},
 		data: diskv.New(diskv.Options{
-			BasePath:     dataDir,
+			BasePath:     cfg.DataBasePath,
 			Transform:    transformKey,
-			CacheSizeMax: cacheSize,
+			CacheSizeMax: cfg.MaxCacheSize,
 		}),
 	}
 }
 
 // Start starts a qrpc server on specified port and tries to connect to existing cluster (if peers were specified).
 // Returns an error channel which will be populated when server fail.
-func (s *Server) Start(port string, peers ...string) <-chan error {
-	log.Printf("-> Start[%s](%s, %d): %s\t%v", s.cluster.key, s.data.BasePath, s.data.CacheSizeMax, port, peers)
-
-	errchan := make(chan error, 1)
+func (s *Server) Start() <-chan error {
+	laddr := ":" + strconv.Itoa(s.cfg.Port)
+	log.Printf("-> Start(%s)%s\n", s.cluster.key, laddr)
 
 	api.RegisterQRPCServer(s.rpc, s)
 	internal.RegisterGossipServer(s.rpc, s)
 
-	lis, err := net.Listen("tcp", ":"+port)
+	errchan := make(chan error, 1)
+	lis, err := net.Listen("tcp", laddr)
 	if err != nil {
 		errchan <- err
 		return errchan
@@ -75,24 +89,24 @@ func (s *Server) Start(port string, peers ...string) <-chan error {
 	go func() { errchan <- s.rpc.Serve(lis) }()
 
 	s.cluster.laddr = lis.Addr().String()
-	s.cluster.Join(peers)
+	s.cluster.Join(s.cfg.ClusterPeers)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	s.cancelWatcher = cancel
 
-	go s.cluster.watch(ctx, time.Second)
+	go s.cluster.watch(ctx, s.cfg.ClusterWatchInterval)
 
 	return errchan
 }
 
 // Stop stops a qrpc server.
 func (s *Server) Stop() {
-	log.Println("-> Stop")
+	log.Printf("-> Stop(%s):%d\n", s.cluster.key, s.cfg.Port)
+
 	if s.cancelWatcher != nil {
 		s.cancelWatcher()
 	}
 	s.cluster.unjoin()
-
 	s.rpc.Stop()
 }
 
