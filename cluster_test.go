@@ -140,17 +140,18 @@ func TestClusterSendReceive(t *testing.T) {
 }
 
 func newCluster(n int) (servers []*Server) {
+	port := 3000 + rand.Intn(3000)
 	for i := 0; i < n; i++ {
 		cfg := &Config{
 			DataBasePath: "/tmp/qrpc-" + strconv.Itoa(i),
 			MaxCacheSize: 1024,
-			Port:         9090 + i,
+			Port:         port + i,
 			ClusterRequestTimeout: 3 * time.Second,
 			ClusterWatchInterval:  time.Second,
 			ClusterPeers:          nil,
 		}
 		if i > 0 {
-			cfg.ClusterPeers = append(cfg.ClusterPeers, "127.0.0.1:"+strconv.Itoa(9090+i-1))
+			cfg.ClusterPeers = append(cfg.ClusterPeers, "127.0.0.1:"+strconv.Itoa(port+i-1))
 		}
 
 		servers = append(servers, NewServer(cfg))

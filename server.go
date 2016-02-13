@@ -50,7 +50,7 @@ type Server struct {
 
 // NewServer creates a qrpc server which has not started to accept requests yet.
 func NewServer(cfg *Config) *Server {
-	log.Println("-> NewServer(%v)", cfg)
+	log.Printf("-> NewServer(%v)\n", cfg)
 
 	return &Server{
 		cfg: cfg,
