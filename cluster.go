@@ -25,7 +25,7 @@ type cluster struct {
 // join implements kind of cluster discovery mechanism.
 // It uses gossip protocol for internal communication.
 // When it's done the Cluster.peers lookup table should be set.
-func (c *cluster) Join(addrs []string) {
+func (c *cluster) join(addrs []string) {
 	var peers []*internal.Peer
 
 	for _, addr := range addrs {

@@ -89,7 +89,7 @@ func (s *Server) Start() <-chan error {
 	go func() { errchan <- s.rpc.Serve(lis) }()
 
 	s.cluster.laddr = lis.Addr().String()
-	s.cluster.Join(s.cfg.ClusterPeers)
+	s.cluster.join(s.cfg.ClusterPeers)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	s.cancelWatcher = cancel
