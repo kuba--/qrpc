@@ -25,7 +25,6 @@ var (
 		Port:         9090,
 		ClusterRequestTimeout: time.Second,
 		ClusterWatchInterval:  time.Second,
-		ClusterPeers:          nil,
 	}
 )
 
