@@ -10,9 +10,6 @@ QRPC stores data using Peter's awesome [diskv](https://github.com/peterbourgon/d
 
 ### Install & Run
 ```sh
-
-$ export GO15VENDOREXPERIMENT=1
-
 $ go get github.com/kuba--/qrpc/qrpc
 $ qrpc --help
 usage: ./qrpc [flags] [cluster peer(s) ...]
