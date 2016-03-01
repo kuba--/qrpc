@@ -2,7 +2,7 @@
 A small distributed queue messaging service backed by grpc.
 
 I've created the project mainly as an exercise because I wanted to play with [grcp](http://www.grpc.io/).
-This is not super secure queue service, rather a grpc example implemented in go.
+This is not super secure queue service, rather a prototype implemented in go.
 
 ### Note
 For the purpose of the project I also "stole" some ideas :)
