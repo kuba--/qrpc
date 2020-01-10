@@ -16,7 +16,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/peer"
 
-	"diskv"
+	"github.com/peterbourgon/diskv"
 
 	"github.com/kuba--/qrpc/api"
 	"github.com/kuba--/qrpc/internal"
@@ -124,7 +124,7 @@ func (s *Server) Send(ctx context.Context, req *api.SendRequest) (*api.SendRespo
 		}
 
 		s.cluster.write(key, req.Msg)
-		return &api.SendResponse{key}, nil
+		return &api.SendResponse{Key: key}, nil
 	}
 }
 
@@ -165,7 +165,7 @@ func (s *Server) Receive(ctx context.Context, req *api.ReceiveRequest) (*api.Rec
 
 		if err == nil && key != "" {
 			s.cluster.erase(key)
-			return &api.ReceiveResponse{key, msg}, nil
+			return &api.ReceiveResponse{Key: key, Msg: msg}, nil
 		}
 	}
 	return nil, grpcErrorf(codes.NotFound, "data not found (%s)", req.Topic)
@@ -236,7 +236,7 @@ func (s *Server) Write(ctx context.Context, req *internal.WriteRequest) (*intern
 		if err != nil {
 			return nil, err
 		}
-		return &internal.WriteResponse{req.Key}, nil
+		return &internal.WriteResponse{Key: req.Key}, nil
 	}
 }
 
@@ -256,7 +256,7 @@ func (s *Server) Erase(ctx context.Context, req *internal.EraseRequest) (*intern
 			return nil, err
 		}
 
-		return &internal.EraseResponse{req.Key}, nil
+		return &internal.EraseResponse{Key: req.Key}, nil
 	}
 }
 
